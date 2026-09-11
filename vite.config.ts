@@ -8,11 +8,14 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       output: {
-        // Keep the heavy 3D stack out of the critical path so the first paint
-        // (and Lighthouse's main-thread budget) only pays for the shell.
-        manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
-          motion: ['framer-motion'],
+        // Keep the heavy 3D and animation stacks out of the entry chunk so the
+        // first paint only pays for the shell.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (/[\\/]node_modules[\\/](three|@react-three)[\\/]/.test(id)) return 'three'
+          if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) {
+            return 'motion'
+          }
         },
       },
     },
