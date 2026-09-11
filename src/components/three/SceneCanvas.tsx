@@ -3,6 +3,32 @@ import type { MotionValue } from 'framer-motion'
 import KnotMesh from './KnotMesh'
 import { CAMERA_DISTANCE, CAMERA_FOV } from './sceneConfig'
 
+/*
+  Hoisted out of the render so their identity is stable: R3F re-runs
+  `configure()` on every render of <Canvas>, and react-use-measure rebuilds its
+  debounce closures whenever the `resize` object changes identity.
+*/
+
+/**
+ * `offsetSize` measures layout px (offsetWidth/offsetHeight), so the CSS
+ * transform that pins the container never triggers a drawing-buffer resize -
+ * the default getBoundingClientRect path reports the *transformed* size and
+ * would call gl.setSize on every scroll frame. `scroll: false` takes
+ * measurement off the scroll path entirely. Do not remove either.
+ */
+const RESIZE = { scroll: false, offsetSize: true, debounce: { scroll: 0, resize: 0 } } as const
+
+const GL = { antialias: true, powerPreference: 'high-performance', alpha: true } as const
+const CAMERA = {
+  fov: CAMERA_FOV,
+  position: [0, 0, CAMERA_DISTANCE] as [number, number, number],
+  near: 1,
+  far: 60,
+}
+const DPR_FULL: [number, number] = [1, 1.75]
+const DPR_SIMPLE: [number, number] = [1, 1.5]
+const CANVAS_STYLE = { pointerEvents: 'none' } as const
+
 export interface SceneCanvasProps {
   pin: MotionValue<number>
   velocity: MotionValue<number>
@@ -10,7 +36,7 @@ export interface SceneCanvasProps {
   pointerY: MotionValue<number>
   reduced: boolean
   simplified: boolean
-  /** Tab hidden or host element off screen — stop the loop entirely. */
+  /** Tab hidden or host element off screen - stop the loop entirely. */
   paused: boolean
 }
 
@@ -32,16 +58,11 @@ export default function SceneCanvas({
   return (
     <Canvas
       frameloop={frameloop}
-      dpr={simplified ? [1, 1.5] : [1, 1.75]}
-      gl={{ antialias: true, powerPreference: 'high-performance', alpha: true }}
-      camera={{ fov: CAMERA_FOV, position: [0, 0, CAMERA_DISTANCE], near: 1, far: 60 }}
-      /*
-        `offsetSize` measures layout px, so the CSS transform that pins the
-        container never triggers a drawing-buffer resize; `scroll: false` keeps
-        the measurement off the scroll path entirely.
-      */
-      resize={{ scroll: false, offsetSize: true, debounce: { scroll: 0, resize: 0 } }}
-      style={{ pointerEvents: 'none' }}
+      dpr={simplified ? DPR_SIMPLE : DPR_FULL}
+      gl={GL}
+      camera={CAMERA}
+      resize={RESIZE}
+      style={CANVAS_STYLE}
     >
       <KnotMesh
         pin={pin}
@@ -50,6 +71,7 @@ export default function SceneCanvas({
         pointerY={pointerY}
         reduced={reduced}
         simplified={simplified}
+        paused={paused}
       />
     </Canvas>
   )

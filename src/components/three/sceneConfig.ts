@@ -41,6 +41,16 @@ export interface PinTarget {
 export const PIN_FULL: PinTarget = { size: 172, inset: 40 }
 export const PIN_COMPACT: PinTarget = { size: 118, inset: 20 }
 
+/**
+ * Bounds on the pinned CSS scale. They stop an extreme viewport (a very short
+ * landscape phone, a zoomed desktop) from inverting or all but erasing the
+ * shape. When a bound bites, the pinned shape is no longer `PIN_*.size` tall,
+ * which is why the translation maths re-derives the on-screen size from the
+ * clamped scale rather than assuming the target.
+ */
+export const PIN_SCALE_MIN = 0.12
+export const PIN_SCALE_MAX = 0.65
+
 /* ---------------------------------------------------------------------------
    Environment probes
 --------------------------------------------------------------------------- */
