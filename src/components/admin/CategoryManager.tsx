@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useAdminStore } from '../../store/useAdminStore'
 import { PROTECTED_CATEGORY_ID } from '../../types'
-import { BTN_PRIMARY, FIELD, HINT, PANEL, SECTION_TITLE } from './adminUi'
+import { BTN_PRIMARY, FIELD, HINT, PANEL, SECTION_TITLE, TRANSITION } from './adminUi'
 import ConfirmButton from './ConfirmButton'
 import InlineText from './InlineText'
 
@@ -53,7 +53,7 @@ export default function CategoryManager() {
           return (
             <li
               key={category.id}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 transition-colors duration-150 hover:bg-ink-raised"
+              className={`flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 ${TRANSITION} hover:bg-ink-raised`}
             >
               <div className="min-w-[180px] flex-1">
                 <InlineText

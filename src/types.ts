@@ -32,3 +32,16 @@ export interface ProjectsData {
 
 /** The one category id that can never be deleted. */
 export const PROTECTED_CATEGORY_ID = 'featured'
+
+/**
+ * Categories a project can actually be filed under.
+ *
+ * `featured` is a flag, not a bucket: the "Best Work" section is built from
+ * every project whose `featured` flag is set, and the homepage skips the
+ * category itself when laying out sections. A project filed under it would
+ * therefore render nowhere unless it also happened to be flagged, so it is
+ * never offered as a destination.
+ */
+export function assignableCategories(categories: Category[]): Category[] {
+  return categories.filter((category) => category.id !== PROTECTED_CATEGORY_ID)
+}

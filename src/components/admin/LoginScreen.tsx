@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useAuthStore } from '../../store/useAuthStore'
-import { BTN_PRIMARY, FIELD, HINT } from './adminUi'
+import { BTN_PRIMARY, DANGER_TEXT, FIELD, HINT, TRANSITION } from './adminUi'
 
 /**
  * The gate in front of /admin. Password only — the username is fixed in
@@ -48,7 +48,7 @@ export default function LoginScreen() {
     <main className="flex min-h-dvh items-center justify-center px-5 py-16">
       <div
         ref={cardRef}
-        className={`w-full max-w-sm rounded-lg border bg-ink-raised p-7 transition-colors duration-300 ${
+        className={`w-full max-w-sm rounded-lg border bg-ink-raised p-7 ${TRANSITION} ${
           error ? 'border-[#5a2424]' : 'border-ink-line'
         }`}
       >
@@ -85,7 +85,7 @@ export default function LoginScreen() {
             <p
               id="admin-password-error"
               role="alert"
-              className="mt-3 text-[12px] text-[#ff8f8f]"
+              className={`${DANGER_TEXT} mt-3 text-[12px]`}
             >
               {error}
             </p>

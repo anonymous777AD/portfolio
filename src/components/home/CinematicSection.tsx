@@ -8,6 +8,11 @@ import { indexLabel, sectionId } from './sectionUtils'
 
 interface CinematicSectionProps {
   label: string
+  /**
+   * The category's own id, used as the landmark id. Two categories can carry
+   * labels that slugify identically, so the label alone is not a safe id.
+   */
+  slug?: string
   projects: Project[]
   onSelect: (id: string) => void
   /** Position of this section on the page — sets the alternation phase. */
@@ -85,6 +90,7 @@ function toRows(projects: Project[]): Project[][] {
  */
 export default function CinematicSection({
   label,
+  slug,
   projects,
   onSelect,
   index,
@@ -97,7 +103,7 @@ export default function CinematicSection({
 
   return (
     <section
-      id={sectionId(label)}
+      id={slug ? sectionId(slug) : sectionId(label)}
       aria-label={label}
       className="relative px-5 py-24 sm:px-8 md:py-40 lg:px-12"
     >
@@ -109,49 +115,71 @@ export default function CinematicSection({
             const flip = (r + index) % 2 === 1
             const solo = row.length === 1
 
+            const lead = (
+              <div
+                key={row[0].id}
+                className={
+                  solo
+                    ? flip
+                      ? 'md:col-span-8 md:col-start-5'
+                      : 'md:col-span-8 md:col-start-1'
+                    : flip
+                      ? 'md:col-span-7 md:col-start-6'
+                      : 'md:col-span-7 md:col-start-1'
+                }
+              >
+                <CinematicCard
+                  project={row[0]}
+                  position={r * 2}
+                  large
+                  delay={flip ? 0.08 : 0}
+                  reducedMotion={reducedMotion}
+                  onSelect={onSelect}
+                />
+              </div>
+            )
+
+            const counterpart = row[1] ? (
+              <div
+                key={row[1].id}
+                className={
+                  flip
+                    ? 'md:col-span-4 md:col-start-1 md:mt-20'
+                    : 'md:col-span-4 md:col-start-9 md:mt-20'
+                }
+              >
+                <CinematicCard
+                  project={row[1]}
+                  position={r * 2 + 1}
+                  large={false}
+                  delay={flip ? 0 : 0.08}
+                  reducedMotion={reducedMotion}
+                  onSelect={onSelect}
+                />
+              </div>
+            ) : null
+
+            /*
+              DOM order follows visual order left-to-right, so tab order and
+              screen-reader order match the page (WCAG 1.3.2). On a mirrored row
+              that means the small card is emitted first; stacked into one column
+              both cards are full width anyway, so nothing is demoted by it.
+            */
             return (
               <div
                 key={row[0].id}
                 className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-start md:gap-10 lg:gap-14"
               >
-                <div
-                  className={
-                    solo
-                      ? flip
-                        ? 'md:col-span-8 md:col-start-5'
-                        : 'md:col-span-8 md:col-start-1'
-                      : flip
-                        ? 'md:col-span-7 md:col-start-6'
-                        : 'md:col-span-7 md:col-start-1'
-                  }
-                >
-                  <CinematicCard
-                    project={row[0]}
-                    position={r * 2}
-                    large
-                    delay={flip ? 0.08 : 0}
-                    reducedMotion={reducedMotion}
-                    onSelect={onSelect}
-                  />
-                </div>
-
-                {row[1] && (
-                  <div
-                    className={
-                      flip
-                        ? 'md:col-span-4 md:col-start-1 md:row-start-1 md:mt-20'
-                        : 'md:col-span-4 md:col-start-9 md:mt-20'
-                    }
-                  >
-                    <CinematicCard
-                      project={row[1]}
-                      position={r * 2 + 1}
-                      large={false}
-                      delay={flip ? 0 : 0.08}
-                      reducedMotion={reducedMotion}
-                      onSelect={onSelect}
-                    />
-                  </div>
+                {flip && counterpart ? (
+                  <>
+                    {counterpart}
+                    {lead}
+                  </>
+                ) : (
+                  <>
+                    {lead}
+                    {counterpart}
+                  </>
                 )}
               </div>
             )

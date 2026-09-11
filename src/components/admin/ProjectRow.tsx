@@ -2,9 +2,9 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { posterUrl } from '../../lib/cloudinary'
 import { useAdminStore } from '../../store/useAdminStore'
-import { ASPECTS } from '../../types'
+import { ASPECTS, PROTECTED_CATEGORY_ID, assignableCategories } from '../../types'
 import type { Aspect, Category, Project } from '../../types'
-import { BTN, SELECT } from './adminUi'
+import { BTN, SELECT, TRANSITION } from './adminUi'
 import ConfirmButton from './ConfirmButton'
 import InlineText from './InlineText'
 
@@ -13,6 +13,8 @@ interface ProjectRowProps {
   categories: Category[]
   /** The raw category value this row's sortable group is keyed on. */
   groupId: string
+  /** Lifted to the table so one matchMedia listener covers every row. */
+  reducedMotion: boolean
   onEdit: (project: Project) => void
 }
 
@@ -34,13 +36,32 @@ function GripIcon() {
  * thumbnail is a still poster, never a video — the table would otherwise pull
  * dozens of clips off the CDN at once.
  */
-export default function ProjectRow({ project, categories, groupId, onEdit }: ProjectRowProps) {
+export default function ProjectRow({
+  project,
+  categories,
+  groupId,
+  reducedMotion,
+  onEdit,
+}: ProjectRowProps) {
   const updateProject = useAdminStore((state) => state.updateProject)
   const toggleFeatured = useAdminStore((state) => state.toggleFeatured)
   const deleteProject = useAdminStore((state) => state.deleteProject)
 
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
-    useSortable({ id: project.id, data: { groupId } })
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: project.id,
+    data: { groupId },
+    // `null` disables the slide-into-place tween; rows still reorder, they just
+    // do not animate. This is the only motion in the table.
+    transition: reducedMotion ? null : undefined,
+  })
 
   const poster = posterUrl(project.url, 160)
   const knownCategory = categories.some((entry) => entry.id === project.category)
@@ -54,7 +75,7 @@ export default function ProjectRow({ project, categories, groupId, onEdit }: Pro
         position: isDragging ? 'relative' : undefined,
         zIndex: isDragging ? 10 : undefined,
       }}
-      className={`border-b border-ink-line/70 transition-colors duration-150 ${
+      className={`border-b border-ink-line/70 ${TRANSITION} ${
         isDragging ? 'bg-ink-raised shadow-[0_12px_30px_-12px_rgb(0_0_0/0.9)]' : 'hover:bg-ink-raised'
       }`}
     >
@@ -62,6 +83,7 @@ export default function ProjectRow({ project, categories, groupId, onEdit }: Pro
         <button
           ref={setActivatorNodeRef}
           type="button"
+          data-grip
           className="flex h-8 w-8 cursor-grab items-center justify-center rounded text-bone-faint hover:bg-ink hover:text-bone active:cursor-grabbing"
           aria-label={`Reorder ${project.name} within its category`}
           {...attributes}
@@ -104,11 +126,16 @@ export default function ProjectRow({ project, categories, groupId, onEdit }: Pro
           onChange={(event) => updateProject(project.id, { category: event.target.value })}
           className={SELECT}
         >
-          {categories.map((entry) => (
+          {assignableCategories(categories).map((entry) => (
             <option key={entry.id} value={entry.id}>
               {entry.label}
             </option>
           ))}
+          {/* Never offered as a destination, but shown when a project is
+              already filed there so saving cannot silently move it. */}
+          {project.category === PROTECTED_CATEGORY_ID && (
+            <option value={PROTECTED_CATEGORY_ID}>{project.category} (not a section)</option>
+          )}
           {!knownCategory && project.category !== '' && (
             <option value={project.category}>{project.category} (missing)</option>
           )}

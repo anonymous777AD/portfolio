@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { parseProjectsData, useAdminStore } from '../../store/useAdminStore'
-import { BTN_PRIMARY, HINT, PANEL, SECTION_TITLE } from './adminUi'
+import { BTN_PRIMARY, DANGER_TEXT, HINT, PANEL, SECTION_TITLE } from './adminUi'
 import ConfirmButton from './ConfirmButton'
 import { fetchProjectsFile } from './fetchProjectsFile'
 
@@ -133,7 +133,7 @@ export default function ImportExportBar() {
         <p
           role={message.tone === 'error' ? 'alert' : 'status'}
           className={`mt-4 border-t border-ink-line pt-3 text-[12px] ${
-            message.tone === 'error' ? 'text-[#ff8f8f]' : 'text-accent'
+            message.tone === 'error' ? DANGER_TEXT : 'text-accent'
           }`}
         >
           {message.text}

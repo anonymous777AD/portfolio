@@ -13,7 +13,9 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { useAdminStore } from '../../store/useAdminStore'
+import { PROTECTED_CATEGORY_ID } from '../../types'
 import type { Project } from '../../types'
 import ProjectRow from './ProjectRow'
 
@@ -55,15 +57,41 @@ export default function ProjectTable({ onEdit }: ProjectTableProps) {
   const categories = useAdminStore((state) => state.categories)
   const projects = useAdminStore((state) => state.projects)
   const reorderWithinCategory = useAdminStore((state) => state.reorderWithinCategory)
+  // One subscription for the whole table — every row shares the answer.
+  const reducedMotion = usePrefersReducedMotion()
 
   const groups = useMemo<RowGroup[]>(() => {
-    const known = new Set(categories.map((entry) => entry.id))
+    const known = new Set<string>()
 
-    const named: RowGroup[] = categories.map((entry) => ({
-      key: entry.id,
-      label: entry.label,
-      projects: projects.filter((project) => project.category === entry.id),
-    }))
+    // An imported file can repeat a category id. Two groups sharing a key would
+    // render the same projects twice — duplicate React keys, and duplicate
+    // sortable ids, which breaks dragging outright. First one wins.
+    const named: RowGroup[] = []
+    for (const entry of categories) {
+      if (known.has(entry.id)) continue
+      known.add(entry.id)
+      const members = projects.filter((project) => project.category === entry.id)
+
+      /*
+        `featured` is a flag, not a bucket: the Featured column drives the
+        "Best Work" section and the home page skips the category itself when
+        laying out sections. Nothing is normally filed under it, so it would sit
+        here as a permanently empty group. It only appears when a hand-edited
+        file actually put work there — where it needs to be visible, because
+        that work renders nowhere on the site.
+      */
+      if (entry.id === PROTECTED_CATEGORY_ID && members.length === 0) continue
+
+      named.push({
+        key: entry.id,
+        label: entry.label,
+        note:
+          entry.id === PROTECTED_CATEGORY_ID
+            ? 'not a section — move this work to a real category'
+            : undefined,
+        projects: members,
+      })
+    }
 
     // One bucket per orphaned category value, so each still has a coherent
     // local order to drag within.
@@ -184,6 +212,7 @@ export default function ProjectTable({ onEdit }: ProjectTableProps) {
                     project={project}
                     categories={categories}
                     groupId={group.key}
+                    reducedMotion={reducedMotion}
                     onEdit={onEdit}
                   />
                 ))}

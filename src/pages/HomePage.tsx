@@ -101,6 +101,7 @@ export default function HomePage() {
 
         <FeaturedSection
           label="Best Work"
+          slug="best-work"
           projects={featured}
           onSelect={openProject}
           index={0}
@@ -111,6 +112,7 @@ export default function HomePage() {
             <UgcSection
               key={section.category.id}
               label={section.category.label}
+              slug={section.category.id}
               projects={section.items}
               onSelect={openProject}
               index={i + 1}
@@ -119,6 +121,7 @@ export default function HomePage() {
             <CinematicSection
               key={section.category.id}
               label={section.category.label}
+              slug={section.category.id}
               projects={section.items}
               onSelect={openProject}
               index={i + 1}

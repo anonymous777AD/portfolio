@@ -61,21 +61,40 @@ export function parseProjectsData(value: unknown): ProjectsData {
   if (!Array.isArray(raw.categories)) throw new Error('Missing a "categories" array')
   if (!Array.isArray(raw.projects)) throw new Error('Missing a "projects" array')
 
+  // Same reasoning as project ids: a duplicate category id would give two row
+  // groups the same key and split one category's drag ordering across both.
+  const takenCategoryIds = new Set<string>()
   const categories: Category[] = raw.categories.map((entry, i) => {
     const c = entry as Record<string, unknown>
     if (typeof c?.id !== 'string' || typeof c?.label !== 'string') {
       throw new Error(`Category #${i + 1} needs a string "id" and "label"`)
     }
-    return { id: c.id, label: c.label }
+    const id = uniqueId(c.id, takenCategoryIds)
+    takenCategoryIds.add(id)
+    return { id, label: c.label }
   })
 
+  /*
+    Ids have to come out unique or the admin table breaks in ways that are hard
+    to trace: duplicates collide as React keys and register the same dnd-kit
+    sortable twice, so dragging one row moves another. A file can arrive with
+    ids missing (we derive them from the name, and two projects can share a
+    name) or with ids that are already duplicated by hand, so both paths run
+    through the same uniquing.
+  */
+  const takenProjectIds = new Set<string>()
   const projects: Project[] = raw.projects.map((entry, i) => {
     const p = entry as Record<string, unknown>
     if (typeof p?.name !== 'string' || typeof p?.url !== 'string') {
       throw new Error(`Project #${i + 1} needs a string "name" and "url"`)
     }
+    const id = uniqueId(
+      typeof p.id === 'string' && p.id ? p.id : slugify(p.name),
+      takenProjectIds,
+    )
+    takenProjectIds.add(id)
     return {
-      id: typeof p.id === 'string' && p.id ? p.id : slugify(p.name),
+      id,
       name: p.name,
       url: p.url,
       category: typeof p.category === 'string' ? p.category : '',

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 
 const INTERACTIVE = 'a, button, [role="button"], input, select, textarea, [data-cursor="grow"]'
@@ -10,17 +11,10 @@ const INTERACTIVE = 'a, button, [role="button"], input, select, textarea, [data-
  */
 export default function CustomCursor() {
   const reducedMotion = usePrefersReducedMotion()
-  const [enabled, setEnabled] = useState(false)
+  // Only fine pointers get a custom cursor — touch keeps the native behaviour.
+  const enabled = useMediaQuery('(hover: hover) and (pointer: fine)')
   const [hovering, setHovering] = useState(false)
   const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
-    const sync = () => setEnabled(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
 
   useEffect(() => {
     if (!enabled) return

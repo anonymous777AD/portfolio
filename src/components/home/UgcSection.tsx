@@ -1,6 +1,6 @@
 import { motion, useMotionValue, useSpring } from 'framer-motion'
-import { useEffect, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion'
 import { EASE_OUT_CUBIC, REVEAL_VIEWPORT } from '../../lib/motion'
 import VideoSurface from '../ui/VideoSurface'
@@ -10,6 +10,11 @@ import { sectionId } from './sectionUtils'
 
 interface UgcSectionProps {
   label: string
+  /**
+   * The category's own id, used as the landmark id. Two categories can carry
+   * labels that slugify identically, so the label alone is not a safe id.
+   */
+  slug?: string
   projects: Project[]
   onSelect: (id: string) => void
   /** Position of this section on the page — offsets the reveal stagger. */
@@ -19,28 +24,6 @@ interface UgcSectionProps {
 /** Max degrees of rotation at the very corners of a card. */
 const TILT_RANGE = 7
 const TILT_SPRING = { stiffness: 190, damping: 20, mass: 0.55 } as const
-
-const FINE_POINTER_QUERY = '(hover: hover) and (pointer: fine)'
-
-function readFinePointer(): boolean {
-  if (typeof window === 'undefined' || !window.matchMedia) return false
-  return window.matchMedia(FINE_POINTER_QUERY).matches
-}
-
-/** True only on devices that actually hover with a precise pointer. */
-function useFinePointer(): boolean {
-  const [fine, setFine] = useState(readFinePointer)
-
-  useEffect(() => {
-    if (!window.matchMedia) return
-    const mq = window.matchMedia(FINE_POINTER_QUERY)
-    const onChange = (event: MediaQueryListEvent) => setFine(event.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return fine
-}
 
 interface PhoneCardProps {
   project: Project
@@ -123,16 +106,23 @@ function PhoneCard({ project, position, tilt, reducedMotion, onSelect }: PhoneCa
  * Portrait work, shown as a grid of phone mockups: three up on desktop, two on
  * tablet, one on mobile.
  */
-export default function UgcSection({ label, projects, onSelect, index }: UgcSectionProps) {
+export default function UgcSection({
+  label,
+  slug,
+  projects,
+  onSelect,
+  index,
+}: UgcSectionProps) {
   const reducedMotion = usePrefersReducedMotion()
-  const finePointer = useFinePointer()
+  // Tilt is a pointer affordance; touch and coarse pointers never get it.
+  const finePointer = useMediaQuery('(hover: hover) and (pointer: fine)')
   const tilt = finePointer && !reducedMotion
 
   if (projects.length === 0) return null
 
   return (
     <section
-      id={sectionId(label)}
+      id={slug ? sectionId(slug) : sectionId(label)}
       aria-label={label}
       className="relative px-5 py-24 sm:px-8 md:py-40 lg:px-12"
     >

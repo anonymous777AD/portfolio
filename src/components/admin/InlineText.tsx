@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { TRANSITION } from './adminUi'
 
 interface InlineTextProps {
   value: string
@@ -78,7 +79,7 @@ export default function InlineText({
       onChange={(event) => setDraft(event.target.value)}
       onKeyDown={onKeyDown}
       onBlur={onBlur}
-      className={`w-full rounded-[3px] border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-bone transition-colors duration-150 hover:border-ink-line hover:bg-ink focus:border-accent/60 focus:bg-ink ${className}`}
+      className={`w-full rounded-[3px] border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-bone ${TRANSITION} hover:border-ink-line hover:bg-ink focus:border-accent/60 focus:bg-ink ${className}`}
     />
   )
 }

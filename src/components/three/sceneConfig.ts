@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { RefObject } from 'react'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
 
 /* ---------------------------------------------------------------------------
    Shared constants for the persistent 3D layer.
@@ -71,26 +72,6 @@ export function hasWebGLSupport(): boolean {
   } catch {
     return false
   }
-}
-
-function queryMatches(query: string): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia(query).matches
-}
-
-export function useMediaQuery(query: string): boolean {
-  const [active, setActive] = useState(() => queryMatches(query))
-
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia(query)
-    const onChange = (event: MediaQueryListEvent) => setActive(event.matches)
-    mq.addEventListener('change', onChange)
-    setActive(mq.matches)
-    return () => mq.removeEventListener('change', onChange)
-  }, [query])
-
-  return active
 }
 
 /** Small screens and thin CPUs get the cheaper geometry, dpr and environment. */

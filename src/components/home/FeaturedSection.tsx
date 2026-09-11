@@ -9,6 +9,11 @@ import { ASPECT_SCALAR, indexLabel, sectionId } from './sectionUtils'
 
 interface FeaturedSectionProps {
   label: string
+  /**
+   * The category's own id, used as the landmark id. Two categories can carry
+   * labels that slugify identically, so the label alone is not a safe id.
+   */
+  slug?: string
   projects: Project[]
   onSelect: (id: string) => void
   /** Position of this section on the page — sets the alternation phase. */
@@ -87,6 +92,7 @@ function FeaturedCard({ project, position, flip, reducedMotion, onSelect }: Feat
  */
 export default function FeaturedSection({
   label,
+  slug,
   projects,
   onSelect,
   index,
@@ -99,7 +105,7 @@ export default function FeaturedSection({
 
   return (
     <section
-      id={sectionId(label)}
+      id={slug ? sectionId(slug) : sectionId(label)}
       aria-label={label}
       className="relative px-5 py-24 [--feat-h:58vh] sm:px-8 md:py-40 md:[--feat-h:78vh] lg:px-12"
     >

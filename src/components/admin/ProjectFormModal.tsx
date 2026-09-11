@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ASPECTS } from '../../types'
+import { ASPECTS, PROTECTED_CATEGORY_ID, assignableCategories } from '../../types'
 import type { Aspect, Category, Project } from '../../types'
-import { BTN, BTN_PRIMARY, FIELD, HINT, LABEL, SELECT } from './adminUi'
+import { BTN, BTN_PRIMARY, DANGER_TEXT, FIELD, HINT, LABEL, SELECT } from './adminUi'
 
 interface ProjectFormModalProps {
   /** `null` creates a new project; a project edits it in place. */
@@ -46,7 +46,11 @@ export default function ProjectFormModal({
 
   const [name, setName] = useState(project?.name ?? '')
   const [url, setUrl] = useState(project?.url ?? '')
-  const [category, setCategory] = useState(project?.category ?? categories[0]?.id ?? '')
+  // A new project defaults to the first real section, never to `featured`,
+  // which is a flag rather than somewhere work can live.
+  const [category, setCategory] = useState(
+    project?.category ?? assignableCategories(categories)[0]?.id ?? '',
+  )
   const [featured, setFeatured] = useState(project?.featured ?? false)
   const [aspect, setAspect] = useState<Aspect>(project?.aspect ?? '16:9')
   const [errors, setErrors] = useState<Errors>({})
@@ -62,10 +66,14 @@ export default function ProjectFormModal({
     const last = nodes[nodes.length - 1]
     const active = document.activeElement
 
-    if (event.shiftKey && (active === first || !panel.contains(active))) {
+    const inside = panel.contains(active)
+
+    if (event.shiftKey && (active === first || !inside)) {
       event.preventDefault()
       last.focus()
-    } else if (!event.shiftKey && active === last) {
+    } else if (!event.shiftKey && (active === last || !inside)) {
+      // `!inside` matters: without it, focus that escaped the panel (or sits on
+      // <body> after a control unmounted) could tab away into the page behind.
       event.preventDefault()
       first.focus()
     }
@@ -165,7 +173,7 @@ export default function ProjectFormModal({
               autoComplete="off"
             />
             {errors.name && (
-              <p id="pf-name-error" role="alert" className="mt-1.5 text-[11px] text-[#ff8f8f]">
+              <p id="pf-name-error" role="alert" className={`${DANGER_TEXT} mt-1.5 text-[11px]`}>
                 {errors.name}
               </p>
             )}
@@ -190,7 +198,7 @@ export default function ProjectFormModal({
               spellCheck={false}
             />
             {errors.url ? (
-              <p id="pf-url-error" role="alert" className="mt-1.5 text-[11px] text-[#ff8f8f]">
+              <p id="pf-url-error" role="alert" className={`${DANGER_TEXT} mt-1.5 text-[11px]`}>
                 {errors.url}
               </p>
             ) : (
@@ -211,11 +219,22 @@ export default function ProjectFormModal({
                 onChange={(event) => setCategory(event.target.value)}
                 className={`${SELECT} mt-1.5`}
               >
-                {categories.map((entry) => (
+                {assignableCategories(categories).map((entry) => (
                   <option key={entry.id} value={entry.id}>
                     {entry.label}
                   </option>
                 ))}
+                {category === PROTECTED_CATEGORY_ID && (
+                  <option value={PROTECTED_CATEGORY_ID}>{category} (not a section)</option>
+                )}
+                {/* A project can carry a category id that no longer exists (a
+                    hand-edited import). Without this option the select renders
+                    with nothing selected while state still holds the old id, so
+                    saving would silently write back a value the form never
+                    showed. */}
+                {category !== '' && !categories.some((entry) => entry.id === category) && (
+                  <option value={category}>{category} (missing)</option>
+                )}
                 <option value="">— Uncategorised —</option>
               </select>
             </div>
