@@ -71,6 +71,13 @@ export default function ProjectFormModal({
     }
   }, [])
 
+  // Keep the latest onClose reachable without making the mount effect depend on
+  // it — a parent re-render must not re-run focus capture mid-edit.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   useEffect(() => {
     restoreFocusRef.current = document.activeElement
     const raf = requestAnimationFrame(() => nameRef.current?.focus())
@@ -78,7 +85,7 @@ export default function ProjectFormModal({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
-        onClose()
+        onCloseRef.current()
       } else if (event.key === 'Tab') {
         trapFocus(event)
       }
@@ -95,7 +102,7 @@ export default function ProjectFormModal({
       const restore = restoreFocusRef.current
       if (restore instanceof HTMLElement) restore.focus()
     }
-  }, [onClose, trapFocus])
+  }, [trapFocus])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

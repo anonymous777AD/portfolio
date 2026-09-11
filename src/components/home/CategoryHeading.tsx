@@ -53,9 +53,9 @@ export default function CategoryHeading({
 
       <h2 className="display-type font-display text-bone">
         {/* The mask: the inner line slides and un-clips from behind this edge. */}
-        <span className="block overflow-hidden pb-[0.08em]">
+        <span className="block overflow-hidden pb-[0.18em]">
           <motion.span
-            className="block will-change-transform"
+            className="block break-words will-change-transform"
             style={{ fontSize: 'clamp(2.5rem, 9vw, 7rem)' }}
             initial={reducedMotion ? false : WIPE_OUT}
             whileInView={WIPE_IN}

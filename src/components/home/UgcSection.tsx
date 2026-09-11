@@ -75,7 +75,7 @@ function PhoneCard({ project, position, tilt, reducedMotion, onSelect }: PhoneCa
   }
 
   return (
-    <li className="[perspective:1200px]">
+    <li>
       <motion.div
         initial={reducedMotion ? false : { opacity: 0, y: 42 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -87,9 +87,15 @@ function PhoneCard({ project, position, tilt, reducedMotion, onSelect }: PhoneCa
           onClick={() => onSelect(project.id)}
           onPointerMove={handleMove}
           onPointerLeave={settle}
+          onPointerCancel={settle}
           onBlur={settle}
           aria-label={`Play ${project.name}`}
-          style={tilt ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined}
+          // `transformPerspective` writes `perspective()` into this element's own
+          // transform. A `perspective` on the <li> would not reach here — CSS
+          // perspective only applies to an element's direct children, and the
+          // reveal wrapper in between flattens the 3D context, which would make
+          // the tilt render as a flat shear instead of a card tipping in depth.
+          style={tilt ? { transformPerspective: 1200, rotateX, rotateY } : undefined}
           whileHover={tilt ? { scale: 1.025 } : undefined}
           transition={{ duration: 0.5, ease: EASE_OUT_CUBIC }}
           className="group mx-auto block w-full max-w-[320px] text-left will-change-transform lg:max-w-[360px]"

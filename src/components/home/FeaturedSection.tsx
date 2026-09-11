@@ -19,6 +19,7 @@ interface FeaturedCardProps {
   project: Project
   position: number
   flip: boolean
+  reducedMotion: boolean
   onSelect: (id: string) => void
 }
 
@@ -27,8 +28,7 @@ interface FeaturedCardProps {
  * the section; width is derived from the clip's own aspect, so a portrait cut
  * simply comes out narrower instead of being cropped to fit.
  */
-function FeaturedCard({ project, position, flip, onSelect }: FeaturedCardProps) {
-  const reducedMotion = usePrefersReducedMotion()
+function FeaturedCard({ project, position, flip, reducedMotion, onSelect }: FeaturedCardProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
@@ -91,6 +91,10 @@ export default function FeaturedSection({
   onSelect,
   index,
 }: FeaturedSectionProps) {
+  // Read once for the whole section rather than opening a matchMedia
+  // subscription per card.
+  const reducedMotion = usePrefersReducedMotion()
+
   if (projects.length === 0) return null
 
   return (
@@ -109,6 +113,7 @@ export default function FeaturedSection({
               project={project}
               position={i}
               flip={(i + index) % 2 === 1}
+              reducedMotion={reducedMotion}
               onSelect={onSelect}
             />
           ))}

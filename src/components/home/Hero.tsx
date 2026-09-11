@@ -23,6 +23,14 @@ export default function Hero() {
       aria-label="Opening"
       className="pointer-events-none relative min-h-dvh w-full overflow-hidden"
     >
+      {/*
+        The only h1 on the page. The hero is deliberately wordless, but the
+        document still needs a top-level heading, and this region would
+        otherwise expose nothing but aria-hidden decoration. Anonymous by
+        design — no name, no brand.
+      */}
+      <h1 className="sr-only">Selected work</h1>
+
       {/* Film grain so the flat black reads as a surface rather than a void. */}
       <div className="noise-overlay" aria-hidden="true" />
 
