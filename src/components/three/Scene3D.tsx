@@ -160,7 +160,15 @@ export default function Scene3D() {
     <div
       ref={host}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      /*
+        Above the page content (main is z-10), below the lightbox (z-80) and the
+        cursor. It has to sit on top to be *persistent*: at z-0 the pinned shape
+        fell behind every opaque card, so it blinked in and out as cards scrolled
+        past the corner and vanished outright on short viewports where a card
+        covers that corner the whole way down. Pointer events stay off, so
+        floating over the page costs nothing.
+      */
+      className="pointer-events-none fixed inset-0 z-30 overflow-hidden"
     >
       <motion.div
         className="absolute inset-0"

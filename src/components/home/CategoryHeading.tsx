@@ -52,19 +52,30 @@ export default function CategoryHeading({
       )}
 
       <h2 className="display-type font-display text-bone">
-        {/* The mask: the inner line slides and un-clips from behind this edge. */}
-        <span className="block overflow-hidden pb-[0.18em]">
+        {/*
+          The mask carries the viewport trigger and the inner line animates
+          through variant propagation. The trigger cannot live on the line
+          itself: its hidden state is clipped to zero width inside this
+          overflow-hidden parent, so an IntersectionObserver watching it would
+          never see it cross the threshold and it would stay invisible forever.
+          The mask always has the line's full geometry, so it is the honest
+          thing to observe.
+        */}
+        <motion.span
+          className="block overflow-hidden pb-[0.18em]"
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={REVEAL_VIEWPORT}
+        >
           <motion.span
             className="block break-words will-change-transform"
             style={{ fontSize: 'clamp(2.5rem, 9vw, 7rem)' }}
-            initial={reducedMotion ? false : WIPE_OUT}
-            whileInView={WIPE_IN}
-            viewport={REVEAL_VIEWPORT}
+            variants={{ hidden: WIPE_OUT, visible: WIPE_IN }}
             transition={{ duration: 0.7, ease: EASE_OUT_CUBIC }}
           >
             {label}
           </motion.span>
-        </span>
+        </motion.span>
       </h2>
 
       <motion.div
